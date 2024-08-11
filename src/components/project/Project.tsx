@@ -1,0 +1,45 @@
+import { useState } from 'react';
+import { Navigate, useParams } from 'react-router-dom';
+import { APIERROR, IssueQuery } from '../../api/apiTypes';
+import { useIssuesQuery } from '../../api/issues.endpoint';
+import { useListsQuery } from '../../api/lists.endpoint';
+import Board from './Board';
+import Details from './Details';
+import Filter from './Filter';
+
+const Project = () => {
+  const projectId = Number(useParams().projectId);
+  const [issueQueryData, setIssueQueryData] = useState<Omit<IssueQuery, 'projectId'>>({});
+  const { data: lists, isSuccess: listsAreReady, error: listError } = useListsQuery(projectId);
+  const {
+    data: issues,
+    isSuccess: issuesAreReady,
+    error: issueError,
+  } = useIssuesQuery(
+    {
+      projectId,
+      ...issueQueryData,
+    },
+    { refetchOnMountOrArgChange: true }
+  );
+
+  if (listError && issueError) {
+    // if ((listError as APIERROR).status === 401 || (issueError as APIERROR).status === 401)
+    //   return <Navigate to='/login' />;
+    // return (
+    //   <div className='grow grid place-items-center h-full text-xl'>
+    //     You are not part of this project ☝
+    //   </div>
+    // );
+  }
+
+  return (
+    <div className='flex grow flex-col'>
+      <Details />
+      <Filter {...{ issueQueryData, setIssueQueryData, projectId }} />
+      <Board {...{ lists, issues }} />
+    </div>
+  );
+};
+
+export default Project;
