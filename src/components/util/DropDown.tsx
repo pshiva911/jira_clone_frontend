@@ -1,7 +1,7 @@
 import { Badge } from '@chakra-ui/react';
 import { Icon } from '@iconify/react';
-import { Dispatch, useState } from 'react';
-import { A, T } from '../issue/CreateIssueModel';
+import { Dispatch, useEffect, useState } from 'react';
+import { A, T } from '../issue/CreateIssueModal';
 import Item from './Item';
 
 type Prop = {
@@ -31,6 +31,13 @@ const DropDown = (props: Prop) => {
     defaultValue || (isMulti ? [list[0]] : 0)
   );
   const [on, setOn] = useState(false);
+
+  useEffect(() => {
+    if (defaultValue !== undefined) return;
+    console.log('default', defaultValue);
+    const initialValue = list[0].value;
+    dispatch({ type: actionType, value: isMulti ? [initialValue] : initialValue });
+  }, []);
 
   const handleSelect = (idx: number) => () => {
     const [clone, resultList] = modifyItems(idx, localList, current as Category[]);
@@ -114,7 +121,7 @@ const DropDown = (props: Prop) => {
           {localList.length > 0 ? (
             localList.map((props, idx) => (
               <li
-                key={props.text}
+                key={props.value}
                 onClick={(isMulti ? handleSelect : handleClick)(idx)}
                 className='px-4 py-2 hover:bg-[#e2e8f0] cursor-pointer'
               >
@@ -140,7 +147,6 @@ export default DropDown;
 export type Category = { text: string; icon?: string; value: number };
 
 // helper
-
 const modifyItems = (idx: number, list: Category[], resultList: Category[]) => {
   const clone = list.slice(0);
   const deleted = clone.splice(idx, 1)[0];

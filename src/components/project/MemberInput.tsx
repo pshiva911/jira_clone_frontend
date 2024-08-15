@@ -1,7 +1,7 @@
 import { Badge, Box, Button, Flex, Input, Text } from '@chakra-ui/react';
 import axios from 'axios';
 import { ChangeEvent, memo, useState } from 'react';
-import { SearchedUser } from '../../api/apiTypes';
+import { PublicUser } from '../../api/apiTypes';
 import { selectMembers, useRemoveMemberMutation } from '../../api/member.endpoint';
 import UserMember from './UserMember';
 
@@ -15,7 +15,7 @@ const MemberInput = ({ projectId }: Props) => {
   const { members } = selectMembers(projectId);
   const [removeMember] = useRemoveMemberMutation();
   const [input, setInput] = useState('');
-  const [users, setUsers] = useState<SearchedUser[]>([]);
+  const [users, setUsers] = useState<PublicUser[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -64,7 +64,7 @@ const MemberInput = ({ projectId }: Props) => {
                     py={1}
                     cursor='pointer'
                     _hover={{ color: 'Highlight' }}
-                    onClick={() => setSelectedId((prev) => (isAdmin ? null : id))}
+                    onClick={() => setSelectedId(isAdmin ? null : id)}
                   >
                     {username + (isAdmin ? ' *' : '')}
                   </Badge>
@@ -121,8 +121,8 @@ const MemberInput = ({ projectId }: Props) => {
                       key={info.id}
                       projectId={projectId}
                       setInput={setInput}
-                      {...info}
                       added={members?.some(({ userId }) => userId === info.id) ?? false}
+                      {...info}
                     />
                   ))}
                 </Box>

@@ -1,4 +1,4 @@
-import { ChakraProvider, Modal, ModalContent, ModalOverlay } from '@chakra-ui/react';
+import { ChakraProvider, Modal, ModalContent, ModalOverlay, useToast } from '@chakra-ui/react';
 import { Dispatch, FC, SetStateAction } from 'react';
 import { useParams } from 'react-router-dom';
 import { selectLists } from '../../api/lists.endpoint';
@@ -6,30 +6,46 @@ import { selectMembers } from '../../api/member.endpoint';
 import { types, priorities } from '../../category';
 import { Category } from '../util/DropDown';
 
-type IssueMetaData = { listId: number; idx: number };
+export type IssueMetaData = { listIdx: number; listId: number; idx: number };
 
 interface Props {
   isOpen: boolean;
   size?: 'responsive' | 'fixed';
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  render: FC<IssueModelProps>;
+  render: FC<IssueModalProps>;
   issue?: IssueMetaData;
 }
 
-function IssueModelHOC(props: Props) {
+function IssueModalHOC(props: Props) {
+  const projectId = Number(useParams().projectId);
   const { issue, size = 'responsive', isOpen, setIsOpen, render: Render } = props;
-  const { members: apiMembers } = selectMembers(1);
-  const { projectId } = useParams();
-  const { lists: apiLists } = selectLists(Number(projectId));
+  const { members: apiMembers } = selectMembers(projectId);
+  const { lists: apiLists } = selectLists(projectId);
+  const toast = useToast();
 
-  if (!apiMembers || !apiLists) return null;
+  console.log(apiLists);
 
-  const members = apiMembers.map(({ username: u, profileUrl: p, userId }) => ({
-    text: u,
-    icon: p,
-    value: userId,
-  })) as Category[];
-  const lists = apiLists.map(({ id, name }) => ({ text: name, value: id })) as Category[];
+  if (apiLists && apiLists.length === 0) {
+    toast({
+      title: 'Please create a list before creating an issue',
+      position: 'top-right',
+      duration: 4000,
+      isClosable: true,
+    });
+    setIsOpen(false);
+    return <></>;
+  }
+
+  const members = apiMembers
+    ? (apiMembers.map(({ username: u, profileUrl: p, userId }) => ({
+        text: u,
+        icon: p,
+        value: userId,
+      })) as Category[])
+    : [];
+  const lists = apiLists
+    ? (apiLists.map(({ id, name }) => ({ text: name, value: id })) as Category[])
+    : [];
 
   const handleClose = () => {
     setIsOpen(false);
@@ -37,7 +53,7 @@ function IssueModelHOC(props: Props) {
 
   return (
     <ChakraProvider>
-      <Modal isOpen={false} onClose={handleClose} autoFocus={false} isCentered size='xl'>
+      <Modal isOpen={isOpen} onClose={handleClose} autoFocus={false} isCentered size='xl'>
         <ModalOverlay bgColor='#0d67cc40' />
         <ModalContent
           borderRadius={2}
@@ -46,6 +62,7 @@ function IssueModelHOC(props: Props) {
         >
           <Render
             {...{
+              projectId,
               lists,
               members,
               types,
@@ -60,13 +77,12 @@ function IssueModelHOC(props: Props) {
   );
 }
 
-export default IssueModelHOC;
+export default IssueModalHOC;
 
 export type T = 'TYPE' | 'SUMMARY' | 'DESCR' | 'ASSIGNEE' | 'PRIORITY' | 'LISTID';
 
-// export type IssueModelAction = { type: T; value: number | number[] | string };
-
-export interface IssueModelProps {
+export interface IssueModalProps {
+  projectId: number;
   issue?: IssueMetaData;
   members: Category[];
   lists: Category[];

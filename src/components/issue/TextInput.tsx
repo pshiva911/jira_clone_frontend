@@ -2,8 +2,8 @@ import { Button, Textarea } from '@chakra-ui/react';
 import { ChangeEvent, useState } from 'react';
 import reactTextareaAutosize from 'react-textarea-autosize';
 import { UpdateIssueType } from '../../api/apiTypes';
-import FormWithLabel from '../util/FormWithLabel';
-import type { DispatchMiddleware } from './IssueDetailModel';
+import WithLabel from '../util/WithLabel';
+import type { DispatchMiddleware } from './IssueDetailModal';
 
 interface Props {
   type: UpdateIssueType;
@@ -38,7 +38,7 @@ const TextInput = (props: Props) => {
 
   return (
     <div>
-      <FormWithLabel label={label ?? ''} labelClass='ml-3'>
+      <WithLabel label={label ?? ''} labelClass='ml-3'>
         <>
           <Textarea
             borderColor='transparent'
@@ -72,7 +72,7 @@ const TextInput = (props: Props) => {
             </>
           )}
         </>
-      </FormWithLabel>
+      </WithLabel>
     </div>
   );
 };

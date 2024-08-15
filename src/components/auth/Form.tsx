@@ -7,7 +7,7 @@ import {
   UseFormHandleSubmit,
   UseFormRegister,
 } from 'react-hook-form';
-import FormWithLabel from '../util/FormWithLabel';
+import WithLabel from '../util/WithLabel';
 
 interface Props {
   register: UseFormRegister<FieldValues>;
@@ -23,7 +23,6 @@ type APIERROR = { message: string };
 
 const Form = (props: Props) => {
   const { register, onSubmit, handleSubmit, errors, type } = props;
-  // const { handleSubmit } = useForm();
   const toast = useToast();
 
   const submit = handleSubmit(async (form) => {
@@ -45,11 +44,11 @@ const Form = (props: Props) => {
   return (
     <form onSubmit={submit}>
       <ChakraProvider>
-        <FormWithLabel label='Email' labelClass='text-[14px]'>
+        <WithLabel label='Email' labelClass='text-[14px]'>
           <>
             <Input
               {...register('email', {
-                required: { value: true, message: 'must not be empty' },
+                required: { value: true, message: 'email must not be empty' },
                 pattern: {
                   value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g,
                   message: 'please provide a valid email',
@@ -61,13 +60,13 @@ const Form = (props: Props) => {
             />
             {errors.email && <ErrorMsg msg={errors.email.message as string} />}
           </>
-        </FormWithLabel>
+        </WithLabel>
         {type === 'SIGNUP' && (
-          <FormWithLabel label='Username' labelClass='text-[14px]'>
+          <WithLabel label='Username' labelClass='text-[14px]'>
             <>
               <Input
                 {...register('username', {
-                  required: { value: true, message: 'must not be empty' },
+                  required: { value: true, message: 'username must not be empty' },
                   minLength: { value: 2, message: 'must be at least two characters long' },
                   pattern: { value: /^[A_Za-z0-9_]+$/, message: 'username can be a-z,A-Z,0-9,_' },
                 })}
@@ -77,13 +76,13 @@ const Form = (props: Props) => {
               />
               {errors.username && <ErrorMsg msg={errors.username.message as string} />}
             </>
-          </FormWithLabel>
+          </WithLabel>
         )}
-        <FormWithLabel label='Password' labelClass='text-[14px]'>
+        <WithLabel label='Password' labelClass='text-[14px]'>
           <>
             <Input
               {...register('pwd', {
-                required: { value: true, message: 'must not be empty' },
+                required: { value: true, message: 'password must not be empty' },
                 minLength: { value: 4, message: 'must be at least 4 characters long' },
                 maxLength: { value: 14, message: 'must be under 15 characters' },
               })}
@@ -93,8 +92,8 @@ const Form = (props: Props) => {
             />
             {errors.pwd && <ErrorMsg msg={errors.pwd.message as string} />}
           </>
-        </FormWithLabel>
-        <hr className='border-t-[.5px] border-gray-400' />
+        </WithLabel>
+        <hr className='border-t-[.5px] border-gray-400 mt-3' />
         <span className='text-[12px] text-gray-600 block mt-6'>
           By clicking below, you agree to the our
           <span className='text-blue-800'> Privacy Policy.</span>
@@ -107,7 +106,7 @@ const Form = (props: Props) => {
           color='white'
           bgColor='#321898'
           borderRadius={3}
-          mt={6}
+          mt={4}
           py={5}
         >
           {type === 'SIGNUP' ? 'Join now' : 'Log In'}

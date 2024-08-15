@@ -1,9 +1,36 @@
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  profileUrl: string;
+  lastLoggedIn: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type updateAuthUser = Partial<Pick<AuthUser, 'username' | 'email' | 'profileUrl'>>;
+
 export interface List {
   id: number;
   name: string;
   order: number;
+  projectId: number;
   // createdAt: string;
   // updatedAt: string;
+}
+
+export interface CreateList {
+  projectId: number;
+}
+
+export interface UpdateList {
+  listId: number;
+  body: Partial<List>;
+}
+
+export interface DeleteList {
+  listId: number;
+  projectId: number;
 }
 
 export interface Issue {
@@ -46,7 +73,9 @@ export interface Project {
   userId: number;
 }
 
-export interface SearchedUser {
+export type CreateProject = Omit<Project, 'id'>;
+
+export interface PublicUser {
   id: number;
   username: string;
   email: string;
@@ -122,6 +151,11 @@ export interface UpdateIssue {
     value: string | number | number[];
     projectId: number;
   };
+}
+
+export interface DeleteIssue {
+  issueId: number;
+  projectId: number;
 }
 
 export interface IssueQuery {

@@ -4,21 +4,23 @@ import { types, priorities } from '../../category';
 import { selectMembers } from '../../api/member.endpoint';
 import AssignedMembers from './AssignedMembers';
 import { useState } from 'react';
-import IssueModelHOC from './IssueModelHOC';
-import IssueDetailModel from './IssueDetailModel';
+import IssueModalHOC from './IssueModalHOC';
+import IssueDetailModal from './IssueDetailModal';
+import { useParams } from 'react-router-dom';
 
 const Issue = (props: Props) => {
-  const { listId, idx, summary, id, type, priority, assignees } = props;
+  const { listId, listIdx, idx, summary, id, type, priority, assignees } = props;
   const [isOpen, setIsOpen] = useState(false);
-  const { members } = selectMembers(1);
+  const projectId = Number(useParams().projectId);
+  const { members } = selectMembers(projectId);
   const { icon, text } = priorities[priority];
 
-  if (!members || !assignees) return null;
+  if (!members) return null;
 
   return (
     <>
       <DraggableWrapper
-        className='mb-2 w-full rounded-sm bg-light-c-1 p-2 shadow-light-issue hover:bg-light-c-5'
+        className='mb-2 w-full rounded-sm bg-c-1 p-2 shadow-issue hover:bg-c-5'
         index={idx}
         draggableId={'issue-' + id}
       >
@@ -34,10 +36,10 @@ const Issue = (props: Props) => {
         </div>
       </DraggableWrapper>
       {isOpen && (
-        <IssueModelHOC
-          render={IssueDetailModel}
+        <IssueModalHOC
+          render={IssueDetailModal}
           {...{ isOpen, setIsOpen }}
-          issue={{ listId, idx }}
+          issue={{ listId, listIdx, idx }}
         />
       )}
     </>
@@ -48,5 +50,6 @@ export default Issue;
 
 interface Props extends JiraIssue {
   listId: number;
+  listIdx: number;
   idx: number;
 }

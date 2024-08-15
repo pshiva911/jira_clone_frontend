@@ -9,27 +9,33 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { useReducer, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import ResizeTextarea from 'react-textarea-autosize';
-import { CreateIssue } from '../../api/apiTypes';
+import { APIERROR, CreateIssue } from '../../api/apiTypes';
+import { selectAuthUser } from '../../api/auth.endpoint';
 import { useCreateIssueMutation } from '../../api/issues.endpoint';
 import DropDown from '../util/DropDown';
-import FormWithLabel from '../util/FormWithLabel';
+import WithLabel from '../util/WithLabel';
 import Item from '../util/Item';
-import type { IssueModelProps } from './IssueModelHOC';
+import type { IssueModalProps } from './IssueModalHOC';
 
-const CreateIssueModel = (props: IssueModelProps) => {
+const CreateIssueModal = (props: IssueModalProps) => {
   const { lists, members, types, priorities, handleClose } = props;
-  const [createIssue] = useCreateIssueMutation();
+  const { authUser } = selectAuthUser();
+  const [createIssue, { error }] = useCreateIssueMutation();
   const [form, dispatch] = useReducer(reducer, initial);
   const [isInvalid, setIsInvalid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { projectId } = useParams();
+  const projectId = Number(useParams().projectId);
+
+  if (!authUser) return null;
+
+  if (error && (error as APIERROR).status === 401) return <Navigate to='/login' />;
 
   const handleCreateIssue = async () => {
-    if (!form.summary) return setIsInvalid(true);
+    if (!form.summary || !authUser) return setIsInvalid(true);
     setIsLoading(true);
-    // await createIssue({ ...form, reporterId: 2, projectId: Number(projectId) });
+    await createIssue({ ...form, reporterId: authUser.id, projectId }); //for now
     setIsLoading(false);
     handleClose();
   };
@@ -42,10 +48,10 @@ const CreateIssueModel = (props: IssueModelProps) => {
         </Text>
       </ModalHeader>
       <ModalBody>
-        <FormWithLabel label='Issue type'>
+        <WithLabel label='Issue type'>
           <DropDown list={types} dispatch={dispatch} actionType='type' type='normal' />
-        </FormWithLabel>
-        <FormWithLabel label='Short summary'>
+        </WithLabel>
+        <WithLabel label='Short summary'>
           <>
             <Input
               size='sm'
@@ -61,8 +67,8 @@ const CreateIssueModel = (props: IssueModelProps) => {
               <span className='text-[13px] text-red-500'>summary must not be empty</span>
             )}
           </>
-        </FormWithLabel>
-        <FormWithLabel label='Description'>
+        </WithLabel>
+        <WithLabel label='Description'>
           <Textarea
             minH='unset'
             overflow='hidden'
@@ -73,9 +79,9 @@ const CreateIssueModel = (props: IssueModelProps) => {
             value={form.descr}
             onChange={(e) => dispatch({ type: 'descr', value: e.target.value })}
           />
-        </FormWithLabel>
+        </WithLabel>
         {members && (
-          <FormWithLabel label='Reporter'>
+          <WithLabel label='Reporter'>
             <Button
               display='flex'
               justifyContent='start'
@@ -86,22 +92,25 @@ const CreateIssueModel = (props: IssueModelProps) => {
               borderRadius={3}
               px={4}
             >
-              <Item {...members[2]} className='w-6 h-6 mr-4 rounded-full object-cover' />
+              <Item
+                {...members.filter(({ value: v }) => v === authUser.id)[0]}
+                className='w-6 h-6 mr-4 rounded-full object-cover'
+              />
             </Button>
-          </FormWithLabel>
+          </WithLabel>
         )}
         {members && (
-          <FormWithLabel label='Assignee'>
+          <WithLabel label='Assignee'>
             <DropDown list={members} dispatch={dispatch} actionType='assignee' type='multiple' />
-          </FormWithLabel>
+          </WithLabel>
         )}
-        <FormWithLabel label='Priority'>
+        <WithLabel label='Priority'>
           <DropDown list={priorities} dispatch={dispatch} actionType='priority' type='normal' />
-        </FormWithLabel>
+        </WithLabel>
         {lists && (
-          <FormWithLabel label='Status'>
+          <WithLabel label='Status'>
             <DropDown list={lists} dispatch={dispatch} actionType='listId' type='normal' />
-          </FormWithLabel>
+          </WithLabel>
         )}
       </ModalBody>
       <ModalFooter>
@@ -131,13 +140,13 @@ const CreateIssueModel = (props: IssueModelProps) => {
   );
 };
 
-export default CreateIssueModel;
+export default CreateIssueModal;
 
 export type T = 'type' | 'summary' | 'descr' | 'assignee' | 'priority' | 'listId';
 
 export type A = { type: T; value: number | number[] | string };
 
-const initial = {
+const initial: State = {
   descr: '',
   summary: '',
   priority: 0,
