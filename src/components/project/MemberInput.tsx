@@ -1,28 +1,34 @@
-import { Badge, Box, Button, Flex, Input, Text } from '@chakra-ui/react';
-import axios from 'axios';
-import { ChangeEvent, memo, useState } from 'react';
-import { PublicUser } from '../../api/apiTypes';
-import { selectMembers, useRemoveMemberMutation } from '../../api/member.endpoint';
+import { ChangeEvent, lazy, memo, Suspense as S, useState } from 'react';
+import { useRemoveMemberMutation } from '../../api/endpoints/member.endpoint';
+import { Member, PublicUser } from '../../api/apiTypes';
 import UserMember from './UserMember';
+import axiosDf from '../../api/axios';
+const ConfirmModel = lazy(() => import('../util/ConfirmModel'));
 
 interface Props {
+  members: Member[];
   projectId: number;
+  readOnly?: boolean;
 }
 
-let unsubscribe: NodeJS.Timeout;
+let unsubscribe: ReturnType<typeof setTimeout>;
 
-const MemberInput = ({ projectId }: Props) => {
-  const { members } = selectMembers(projectId);
+const MemberInput = (props: Props) => {
+  const { projectId, members, readOnly } = props;
   const [removeMember] = useRemoveMemberMutation();
-  const [input, setInput] = useState('');
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [users, setUsers] = useState<PublicUser[]>([]);
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const uname = members && members[selectedIdx as number]?.username;
 
-  const handleRemoveMember = () => {
-    if (!selectedId) return;
-    removeMember({ projectId, userId: selectedId });
-    setSelectedId(null);
+  const handleRemoveMember = async () => {
+    if (!selectedIdx || !members) return;
+    const member = members[selectedIdx];
+    removeMember({ projectId, memberId: member.id, userId: member.userId });
+    setSelectedIdx(null);
+    setIsOpen(false);
   };
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -39,98 +45,87 @@ const MemberInput = ({ projectId }: Props) => {
 
   return (
     <div>
-      <Text as='label' fontSize='sm'>
-        Members
-      </Text>
-      <Input
+      <label className='text-sm tracking-wide text-c-5'>Members</label>
+      <input
         value={input}
         onChange={handleInputChange}
-        size='sm'
-        mt={1}
-        variant='filled'
-        placeholder='username or email'
+        placeholder='username'
+        className={`mt-2 block w-full rounded-sm border-2 border-transparent bg-c-6 px-3 py-[3px] text-sm text-c-text outline-none duration-200 hover:bg-c-7 focus:border-chakra-blue focus:bg-c-1 ${
+          readOnly ? 'pointer-events-none' : ''
+        }`}
+        readOnly={readOnly}
       />
-      <Box position='relative'>
-        <Box>
-          <Flex wrap='wrap' gap={1} mt={3}>
+      <div className='relative'>
+        <div>
+          <div className='mt-3 flex flex-wrap gap-x-1 gap-y-2'>
             {members
-              ? members.map(({ username, id, isAdmin }) => (
-                  <Badge
+              ? members.map(({ username, id, isAdmin }, idx) => (
+                  <div
                     key={id}
-                    variant={isAdmin ? 'solid' : 'outline'}
-                    colorScheme={selectedId === id ? 'green' : 'blue'}
-                    gap={1}
-                    px={2}
-                    py={1}
-                    cursor='pointer'
-                    _hover={{ color: 'Highlight' }}
-                    onClick={() => setSelectedId(isAdmin ? null : id)}
+                    onClick={() => setSelectedIdx(isAdmin ? null : idx)}
+                    className={`rounded-sm border-[1px] px-2 py-[1px] text-sm font-semibold tracking-wide  ${
+                      isAdmin
+                        ? 'bg-blue-500 text-white'
+                        : 'cursor-pointer text-blue-400 hover:opacity-90'
+                    } ${
+                      selectedIdx === idx ? 'border-green-400 text-green-400' : 'border-blue-400'
+                    } ${readOnly ? 'pointer-events-none' : ''}`}
                   >
                     {username + (isAdmin ? ' *' : '')}
-                  </Badge>
+                  </div>
                 ))
               : 'loading ...'}
-          </Flex>
-          {selectedId && (
-            <>
-              <hr className='border-t-[.5px] border-gray-400 mt-3' />
-              <Flex justifyContent='right' mt={3}>
-                <Button
-                  onClick={() => setSelectedId(null)}
-                  size='xs'
-                  borderRadius={3}
-                  variant='ghost'
-                  mr={3}
-                >
-                  cancel
-                </Button>
-                <Button onClick={handleRemoveMember} size='xs' borderRadius={3} colorScheme='red'>
-                  remove member
-                </Button>
-              </Flex>
-            </>
+          </div>
+          {selectedIdx && !readOnly && (
+            <div className='mt-3 flex justify-end gap-x-3 border-t-[.5px] border-gray-400 pt-4'>
+              <button
+                onClick={() => setSelectedIdx(null)}
+                className='btn bg-transparent text-[13px] tracking-wide text-c-text hover:bg-c-2'
+              >
+                cancel
+              </button>
+              <button
+                onClick={() => setIsOpen(true)}
+                className='btn-alert text-[13px] tracking-wide'
+              >
+                Remove member
+              </button>
+            </div>
           )}
-        </Box>
+        </div>
         {!input ? null : (
-          <Box
-            position='absolute'
-            zIndex={1}
-            top={0}
-            bgColor='white'
-            w='full'
-            shadow='sm'
-            borderWidth={1}
-            p='8px 12px 22px'
-          >
+          <div className='absolute top-0 z-10 w-full rounded-[3px] border-[1px] bg-c-1 bg-white p-[8px_12px_22px] text-c-text shadow-sm'>
             {loading ? (
-              <Text textAlign='center' mt={2}>
-                searching ...
-              </Text>
+              <span className='mt-2 block text-center'>searching ...</span>
             ) : users.length === 0 ? (
-              <Text textAlign='center' mt={2}>
-                not user was found :(
-              </Text>
+              <span className='mt-2 block text-center'>not user was found :(</span>
             ) : (
               <>
-                <Text fontSize={13} mb={2}>
-                  Is this the one?
-                </Text>
-                <Box>
-                  {users.map((info) => (
-                    <UserMember
-                      key={info.id}
-                      projectId={projectId}
-                      setInput={setInput}
-                      added={members?.some(({ userId }) => userId === info.id) ?? false}
-                      {...info}
-                    />
-                  ))}
-                </Box>
+                <span className='mb-2 block text-sm'>Is this the one?</span>
+                {users.map((info) => (
+                  <UserMember
+                    key={info.id}
+                    projectId={projectId}
+                    setInput={setInput}
+                    added={members?.some(({ userId }) => userId === info.id) ?? false}
+                    {...info}
+                  />
+                ))}
               </>
             )}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
+      {isOpen && (
+        <S>
+          <ConfirmModel
+            msg={'remove ' + uname}
+            onClose={() => setIsOpen(false)}
+            onSubmit={handleRemoveMember}
+            toastMsg={uname + ' is out from the project!'}
+          />
+        </S>
+      )}
     </div>
   );
 };
@@ -138,8 +133,6 @@ const MemberInput = ({ projectId }: Props) => {
 export default memo(MemberInput);
 
 const searchUsers = async (q: string) => {
-  const result = await axios.get('http://localhost:5000/api/user/search?q=' + q, {
-    withCredentials: true,
-  });
+  const result = await axiosDf.get('api/user/search?q=' + q);
   return result.data;
 };

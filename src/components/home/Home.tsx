@@ -3,23 +3,23 @@ import Breadcrumbs from './Breadcrumbs';
 import Menubar from './Menubar';
 import ProjectCatalog from './ProjectCatalog';
 import Sidebar from './Sidebar';
-import type { Theme } from '../../App';
+import type { Theme } from '../../utils';
 
 interface Props {
+  theme: Theme;
   toggleTheme: () => void;
 }
 
 const Home = (props: Props) => {
-  const { toggleTheme } = props;
   const outlet = useOutlet();
 
   return (
     <>
-      <Sidebar toggleTheme={toggleTheme} />
+      <Sidebar {...props} />
       <Menubar />
       {outlet ? (
         <>
-          <main className='z-10 bg-center bg-c-9 overflow-auto grow'>
+          <main className='z-10 h-screen grow overflow-auto bg-c-1 bg-center'>
             <Breadcrumbs />
             <Outlet />
           </main>

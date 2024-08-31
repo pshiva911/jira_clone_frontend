@@ -1,94 +1,116 @@
-import { Dispatch, SetStateAction, useState } from 'react';
-import {
-  ChakraProvider,
-  InputGroup,
-  InputLeftElement,
-  Input,
-  Avatar,
-  AvatarGroup,
-  Button,
-  ButtonGroup,
-  Divider,
-} from '@chakra-ui/react';
-import { Icon as IconIfy } from '@iconify/react';
-import { useMembersQuery } from '../../api/member.endpoint';
-import CreateIssueModal from '../issue/CreateIssueModal';
-import IssueModalHOC from '../issue/IssueModalHOC';
-import { APIERROR, IssueQuery } from '../../api/apiTypes';
+import { Dispatch, lazy, SetStateAction, Suspense as S, useState } from 'react';
+import { APIERROR } from '../../api/apiTypes';
 import { Navigate } from 'react-router-dom';
+import { Icon } from '@iconify/react';
+import { useMembersQuery } from '../../api/endpoints/member.endpoint';
+import { useAuthUserQuery } from '../../api/endpoints/auth.endpoint';
+import { useProjectQuery } from '../../api/endpoints/project.endpoint';
+import { useAppSelector, useAppDispatch } from '../../store/hooks';
+import { setIssueQuery } from '../../store/slices/querySlice';
+import Avatar from '../util/Avatar';
+import toast from 'react-hot-toast';
+const IssueModelHOC = lazy(() => import('../issue/IssueModelHOC'));
+const CreateIssueModal = lazy(() => import('../issue/CreateIssueModal'));
 
 interface Props {
-  issueQueryData: Omit<IssueQuery, 'projectId'>;
-  setIssueQueryData: Dispatch<SetStateAction<Omit<IssueQuery, 'projectId'>>>;
+  setIsDragDisabled: Dispatch<SetStateAction<boolean>>;
   projectId: number;
+  isEmpty: boolean;
 }
 
-const Filter = (props: Props) => {
-  const {
-    issueQueryData: { userId: uid },
-    setIssueQueryData,
-    projectId,
-  } = props;
-  const { data: members, error } = useMembersQuery(projectId);
-  const [isOpen, setIsOpen] = useState(false);
+function Filter(props: Props) {
+  const { projectId, isEmpty, setIsDragDisabled } = props;
+  const { data: m, error } = useMembersQuery(projectId);
+  const { data: pj } = useProjectQuery(projectId);
+  const { data: u } = useAuthUserQuery();
+  const { userId: uid } = useAppSelector((s) => s.query.issue);
+  const [on, setOn] = useState(false);
+  const dispatch = useAppDispatch();
+  const [fold, setFold] = useState(true);
+  const len = m?.length;
 
   if (error && (error as APIERROR).status === 401) return <Navigate to='/login' />;
 
+  function handleClick() {
+    if (isEmpty) return toast.error('Please create a list first!');
+    setOn(true);
+  }
+
+  const handleSetQuery = (query: { userId?: number }) => () => {
+    dispatch(setIssueQuery(query));
+    setIsDragDisabled(!!query.userId);
+  };
+
   return (
-    <div className='mb-8 flex min-w-fit items-center px-10 text-c-6'>
-      <ChakraProvider>
-        <InputGroup size='sm' minW={160} w={160}>
-          <InputLeftElement children={<IconIfy width={20} icon='ant-design:search-outlined' />} />
-          <Input size='sm' placeholder='Search issues'></Input>
-        </InputGroup>
-        <AvatarGroup ml={6} mr={4}>
-          {members?.map(({ id, profileUrl, username, userId }) => (
+    <div className='mb-8 flex min-w-fit items-center text-c-5'>
+      <div className='relative'>
+        <input
+          placeholder='Search issues'
+          className='w-44 rounded-sm border-[1.5px] bg-transparent py-[5px] pl-9 pr-2 text-sm outline-none focus:border-chakra-blue'
+        />
+        <Icon
+          width={20}
+          icon='ant-design:search-outlined'
+          className='absolute top-[6px] left-2 w-[19px]'
+        />
+      </div>
+      {m && len && (
+        <div className='ml-7 mr-1 flex'>
+          {(len > 4 && fold ? m.slice(0, 4) : m).map(({ profileUrl, username, userId }, i) => (
             <Avatar
-              key={id}
-              name={username}
+              key={userId}
               src={profileUrl}
-              h={'43px'}
-              w={'43px'}
-              cursor='pointer'
-              transitionDuration='.2s'
-              borderColor={userId === uid ? 'blue' : undefined}
-              _hover={{ transform: 'translateY(-6px)' }}
-              onClick={() => setIssueQueryData({ userId })}
+              name={username}
+              style={{ zIndex: len - i }}
+              onClick={handleSetQuery({ userId })}
+              className={`-ml-2 h-11 w-11 border-2 duration-300 hover:-translate-y-2 ${
+                userId === uid ? 'border-blue-500' : ''
+              }`}
             />
           ))}
-        </AvatarGroup>
-        <ButtonGroup size='sm' variant='ghost'>
-          <Button fontWeight='normal' fontSize={15}>
-            Only my issues
-          </Button>
-          <Button fontWeight='normal' fontSize={15}>
-            Completed Issue
-          </Button>
-          <Divider my={1} h={6} orientation='vertical' />
-          {uid && (
-            <Button fontWeight='normal' fontSize={15} onClick={() => setIssueQueryData({})}>
-              Clear all
-            </Button>
+          {len > 4 && fold && (
+            <button
+              onClick={() => setFold(false)}
+              className='-ml-2 grid h-11 w-11 items-center rounded-full bg-c-2 pl-2 hover:bg-c-3'
+            >
+              {len - 4}+
+            </button>
           )}
-        </ButtonGroup>
-        <Button
-          borderRadius={2}
-          size='sm'
-          ml={6}
-          colorScheme='messenger'
-          bgColor='#0052cc'
-          fontWeight='normal'
-          fontSize={15}
-          onClick={() => setIsOpen(true)}
+        </div>
+      )}
+      {u && (
+        <button className='btn-crystal shrink-0' onClick={handleSetQuery({ userId: u.id })}>
+          Only my issues
+        </button>
+      )}
+      {uid && (
+        <>
+          <div className='pb-[2px]'>|</div>
+          <button className='btn-crystal shrink-0' onClick={handleSetQuery({})}>
+            Clear all
+          </button>
+        </>
+      )}
+      <button onClick={handleClick} className='btn peer relative mx-5 shrink-0'>
+        Create an issue
+      </button>
+      {pj && pj.repo && (
+        <button
+          title='go to github'
+          onClick={() => window.open(pj.repo as string, '_blank')}
+          className='ml-auto flex shrink-0 items-center gap-2 rounded-[3px] bg-c-2 py-1 px-3 hover:bg-c-6'
         >
-          Create an issue
-        </Button>
-        {isOpen && (
-          <IssueModalHOC size='fixed' render={CreateIssueModal} {...{ isOpen, setIsOpen }} />
-        )}
-      </ChakraProvider>
+          <Icon icon='bxl:github' />
+          GitHub Repo
+        </button>
+      )}
+      {on && !isEmpty && (
+        <S>
+          <IssueModelHOC children={CreateIssueModal} onClose={() => setOn(false)} />
+        </S>
+      )}
     </div>
   );
-};
+}
 
 export default Filter;

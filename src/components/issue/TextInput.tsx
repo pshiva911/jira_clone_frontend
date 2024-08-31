@@ -1,80 +1,38 @@
-import { Button, Textarea } from '@chakra-ui/react';
-import { ChangeEvent, useState } from 'react';
-import reactTextareaAutosize from 'react-textarea-autosize';
-import { UpdateIssueType } from '../../api/apiTypes';
+import { Dispatch } from 'react';
 import WithLabel from '../util/WithLabel';
-import type { DispatchMiddleware } from './IssueDetailModal';
+import { A, T } from './CreateIssueModal';
 
 interface Props {
-  type: UpdateIssueType;
-  label?: string;
-  defaultValue: string;
-  fontSize?: number;
-  fontWeight?: number;
-  apiFunc: (data: DispatchMiddleware) => void;
+  dispatch: Dispatch<A>;
+  value: string;
+  type: T;
+  max: number;
+  label: string;
 }
 
-const TextInput = (props: Props) => {
-  const { type, label, defaultValue, apiFunc, fontSize: fs, fontWeight: fw } = props;
-  const [value, setValue] = useState(defaultValue ?? '');
-  const [isEditing, setIsEditing] = useState(false);
-
-  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    !isEditing && setIsEditing(true);
-    const newValue = e.target.value;
-    setValue(newValue);
-  };
-
-  const handleCancel = () => {
-    setValue(defaultValue);
-    setIsEditing(false);
-  };
-
-  const handleSave = () => {
-    setIsEditing(false);
-    if (value === defaultValue) return;
-    apiFunc({ type, value });
-  };
+function TextInput(props: Props) {
+  const { dispatch, value, type, max, label } = props;
 
   return (
-    <div>
-      <WithLabel label={label ?? ''} labelClass='ml-3'>
-        <>
-          <Textarea
-            borderColor='transparent'
-            textColor='blackAlpha.900'
-            overflow='hidden'
-            borderRadius={2}
-            fontWeight={fw || 500}
-            fontSize={fs || 18}
-            borderWidth={1}
-            resize='none'
-            minH='unset'
-            minRows={1}
-            size='sm'
-            as={reactTextareaAutosize}
-            value={value}
-            isRequired
-            _hover={{ bg: 'gray.100' }}
-            onChange={handleChange}
-          />
-          {isEditing && (
-            <>
-              <hr className='border-t-[.5px] border-gray-400 mt-3 mb-2 mx-3' />
-              <div className='flex justify-end'>
-                <Button onClick={handleCancel} size='sm' borderRadius={3} variant='ghost' mr={3}>
-                  cancel
-                </Button>
-                <Button onClick={handleSave} size='sm' borderRadius={3} colorScheme='blue'>
-                  save
-                </Button>
-              </div>
-            </>
-          )}
-        </>
-      </WithLabel>
-    </div>
+    <WithLabel label={label}>
+      <div className='relative'>
+        <input
+          placeholder='a short summary of your project'
+          onChange={(e) => dispatch({ type, value: e.target.value })}
+          className='mt-2 block w-full rounded-sm border-2 px-3 py-1 text-sm outline-none duration-200 focus:border-chakra-blue'
+        />
+        {value && (
+          <span
+            className={`absolute right-0 text-sm italic ${
+              value.length > max ? 'text-red-400' : 'text-gray-800'
+            }`}
+          >
+            {value.length > max ? 'max length exceeded' : <>{max - value.length} characters left</>}
+          </span>
+        )}
+      </div>
+    </WithLabel>
   );
-};
+}
 
 export default TextInput;

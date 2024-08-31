@@ -1,47 +1,61 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as BR, Navigate, Route as R, Routes } from 'react-router-dom';
+import { lazy, Suspense as S, useState } from 'react';
 import { Provider } from 'react-redux';
 import { store } from './store/store';
+import { getTheme } from './utils';
 import Welcome from './components/auth/Welcome';
-import LogIn from './components/auth/Login';
-import Setting from './components/project/Setting';
-import Project from './components/project/Project';
 import Home from './components/home/Home';
-import Register from './components/auth/Register';
-import { useState } from 'react';
+import { Toaster } from 'react-hot-toast';
+
+const Setting = lazy(() => import('./components/project/Setting'));
+const Project = lazy(() => import('./components/project/Project'));
+const Adios = lazy(() => import('./components/auth/Adios'));
 
 function App() {
-  const [{ mode }, setTheme] = useState<Theme>(getTheme());
+  const [theme, setTheme] = useState(getTheme());
 
   const toggleTheme = () => setTheme(({ mode }) => ({ mode: mode === 'light' ? 'dark' : 'light' }));
 
   return (
-    <main
-      className={`flex h-screen bg-c-111 bg-gray-500 ${
-        mode === 'light' ? 'light-theme' : 'dark-theme'
-      }`}
-    >
+    <main className={`bg-c-111 flex ${theme.mode === 'light' ? 'light-theme' : 'dark-theme'}`}>
       <Provider store={store}>
-        <BrowserRouter>
+        <BR>
           <Routes>
-            <Route path='/project' element={<Home toggleTheme={toggleTheme} />}>
-              <Route path=':projectId' element={<Setting />} />
-              <Route path=':projectId/board' element={<Project />} />
-            </Route>
-            <Route path='register' element={<Welcome children={Register} />} />
-            <Route path='login' element={<Welcome children={LogIn} />} />
-            <Route path='/' element={<Navigate to='/project' />} />
+            <R path='/project' element={<Home theme={theme} toggleTheme={toggleTheme} />}>
+              <R
+                path=':projectId'
+                element={
+                  <S>
+                    <Setting />
+                  </S>
+                }
+              />
+              <R
+                path=':projectId/board'
+                element={
+                  <S>
+                    <Project />
+                  </S>
+                }
+              />
+            </R>
+            <R path='/register' element={<Welcome type='REGISTER' />} />
+            <R path='/login' element={<Welcome type='LOGIN' />} />
+            <R
+              path='/adios'
+              element={
+                <S>
+                  <Adios />
+                </S>
+              }
+            />
+            <R path='/' element={<Navigate to='/project' />} />
           </Routes>
-        </BrowserRouter>
+        </BR>
       </Provider>
+      <Toaster />
     </main>
   );
 }
 
 export default App;
-
-function getTheme() {
-  const localTheme = localStorage.getItem('jira-clone-theme');
-  return localTheme ? JSON.parse(localTheme) : { mode: 'light' };
-}
-
-export type Theme = { mode: 'light' | 'dark' };

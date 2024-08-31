@@ -15,8 +15,6 @@ export interface List {
   name: string;
   order: number;
   projectId: number;
-  // createdAt: string;
-  // updatedAt: string;
 }
 
 export interface CreateList {
@@ -43,6 +41,7 @@ export interface Issue {
   listId: number;
   reporterId: number;
   assignees: Assignee[];
+  comments: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -51,7 +50,7 @@ export interface Assignee {
   id: number;
   userId: number;
   issueId: number;
-  // createdAt: string
+  projectId: number;
 }
 
 export interface Member {
@@ -62,7 +61,6 @@ export interface Member {
   isAdmin: boolean;
   projectId: number;
   userId: number;
-  // createdAt: string
 }
 
 export interface Project {
@@ -74,6 +72,12 @@ export interface Project {
 }
 
 export type CreateProject = Omit<Project, 'id'>;
+
+export interface LeaveProject {
+  projectId: number;
+  userId: number;
+  memberId: number;
+}
 
 export interface PublicUser {
   id: number;
@@ -110,9 +114,13 @@ export interface reorderIssues {
   projectId: number;
 }
 
-export interface AddRemoveMember {
-  userId: number;
+export interface AddMember {
   projectId: number;
+  userId: number;
+}
+
+export interface RemoveMember extends AddMember {
+  memberId: number;
 }
 
 export interface dndOrderData {
@@ -166,4 +174,30 @@ export interface IssueQuery {
 export interface APIERROR {
   message: string;
   status: number;
+}
+
+export interface Comment {
+  id: number;
+  username: string;
+  profileUrl?: string;
+  userId: number;
+  descr: string;
+  createdAt: string;
+}
+
+export interface getComments {
+  issueId: number;
+  projectId: number;
+}
+
+export interface CreateComment {
+  issueId: number;
+  userId: number;
+  descr: string;
+  projectId: number;
+}
+
+export interface DeleteComment {
+  id: number;
+  projectId: number;
 }

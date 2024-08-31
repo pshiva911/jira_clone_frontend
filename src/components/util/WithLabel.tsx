@@ -8,9 +8,13 @@ type Props = {
 const WithLabel = (props: Props) => {
   const { label, margin, labelClass, children: Children } = props;
   return (
-    <div className={margin ?? 'mt-5'}>
+    <div className={margin ?? "mt-5"}>
       {label && (
-        <span className={'font-medium text-[14px] text-gray-900 mb-1 block ' + labelClass}>
+        <span
+          className={
+            "mb-2 block text-[14px] font-medium text-c-1 " + labelClass
+          }
+        >
           {label}
         </span>
       )}

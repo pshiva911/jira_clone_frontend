@@ -1,91 +1,54 @@
-import { Avatar, Button, ChakraProvider, Stack, Text } from '@chakra-ui/react';
-import { FieldError, FieldValues, useForm } from 'react-hook-form';
-import { selectAuthUser, useUpdateAuthUserMutation } from '../../api/auth.endpoint';
-import InputWithValidation from '../util/InputWithValidation';
+import { lazy, memo, Suspense as S, useState } from 'react';
+import { Link } from 'react-router-dom';
+import type { AuthUser } from '../../api/apiTypes';
+import UpdateProfile from './UpdateProfile';
+import Avatar from '../util/Avatar';
+import { parseDate } from '../../utils';
+const ChangePwd = lazy(() => import('./ChangePwd'));
 
-const Profile = () => {
-  const { authUser: u } = selectAuthUser();
-  const [updateAuthUser] = useUpdateAuthUserMutation();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting: loading },
-  } = useForm();
+interface Props {
+  authUser: AuthUser;
+}
 
-  const handleUpdate = async (form: FieldValues) => {
-    if (
-      !u ||
-      (form.username === u.username && form.email === u.email && form.profileUrl === u.profileUrl)
-    )
-      return;
-    await updateAuthUser(form);
-  };
+const Profile = (props: Props) => {
+  const { authUser: u } = props;
+  const [isNormal, setIsNormal] = useState(true);
 
   return (
-    <div className='w-[320px] flex flex-col items-center bg-c-1 border-r-2 border-c-4 h-full p-6'>
+    <div className='flex h-screen w-[320px] flex-col items-center gap-8 overflow-y-auto overflow-x-hidden border-r-2 border-c-3 bg-c-1 p-6'>
       {u ? (
-        <ChakraProvider>
-          <Avatar src={u?.profileUrl} name={u?.username} w={40} h={40} />
-          <Stack spacing={4} mt={8}>
-            <InputWithValidation
-              label='Username'
-              placeholder='username'
-              defaultValue={u.username}
-              register={register('username', {
-                required: { value: true, message: 'username must not be empty' },
-              })}
-              error={errors.username as FieldError}
-            />
-            <InputWithValidation
-              label='Email'
-              placeholder='email'
-              defaultValue={u.email}
-              register={register('email', {
-                required: { value: true, message: 'username must not be empty' },
-              })}
-              error={errors.email as FieldError}
-              readonly
-            />
-            <InputWithValidation
-              label='Photo Url'
-              placeholder='profile picture'
-              defaultValue={u.profileUrl}
-              register={register('profileUrl')}
-              error={errors.profileUrl as FieldError}
-            />
-          </Stack>
-          <Button
-            borderRadius={2}
-            size='sm'
-            mt={10}
-            colorScheme='messenger'
-            bgColor='#0052cc'
-            fontWeight='normal'
-            fontSize={15}
-            w='full'
-            isLoading={loading}
-            onClick={handleSubmit(handleUpdate)}
-          >
-            Save Changes
-          </Button>
-          <div className='mt-auto w-full text-c-6'>
-            <Text fontSize={16}>
-              Last logged In
-              <span className='tracking-wide font-semibold ml-3'>
-                {new Date(u.lastLoggedIn).toLocaleDateString()}
-              </span>
-            </Text>
-            <Text fontSize={16}>
-              Joined at
-              <span className='tracking-wide font-semibold ml-3'>
-                {new Date(u.createdAt).toLocaleDateString()}
-              </span>
-            </Text>
+        <>
+          <Avatar
+            src={u.profileUrl}
+            name={u.username}
+            className='h-40 w-40 cursor-default text-6xl'
+          />
+          <div className='mb-2'>
+            {isNormal ? (
+              <UpdateProfile user={u} />
+            ) : (
+              <S>
+                <ChangePwd />
+              </S>
+            )}
+            <button
+              onClick={() => setIsNormal((p) => !p)}
+              className='mt-2 w-full rounded-sm py-1 text-center text-c-text underline hover:bg-c-6'
+            >
+              {isNormal ? 'Change password' : 'Go back'}
+            </button>
           </div>
-        </ChakraProvider>
+          <div className='mt-auto w-full text-sm text-c-5'>
+            <span className='mb-1 block'>{'joined at ' + parseDate(u.createdAt)}</span>
+            <span>{'last logged in ' + parseDate(u.lastLoggedIn)}</span>
+            <Link to='/adios' className='btn-alert mt-3 block w-full text-center text-base'>
+              Delete account
+            </Link>
+          </div>
+        </>
       ) : null}
     </div>
   );
 };
 
-export default Profile;
+export default memo(Profile);
