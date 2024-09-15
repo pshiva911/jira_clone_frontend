@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useState} from 'react';
 import {
   FieldError,
   FieldErrorsImpl,
@@ -8,6 +8,7 @@ import {
   UseFormRegister,
 } from 'react-hook-form';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { APIERROR } from '../../api/apiTypes';
 import InputWithValidation from '../util/InputWithValidation';
 
@@ -25,13 +26,15 @@ interface Props {
 function Form(props: Props) {
   const { register, onSubmit, handleSubmit, errors, loading, type } = props;
   const [error, setError] = useState('');
+  const navigate = useNavigate()
 
   const submit = handleSubmit(async (form) => {
     try {
       await onSubmit(form);
       toast(type === 'LOGIN' ? 'You have logged in!' : 'Your account is created!');
       // window.location.replace('https://jira-replica.vercel.app/project'); //with refresh
-      window.location.replace('http://localhost:5173/project');
+      // window.location.replace('http://localhost:5173/project');
+      navigate('/project')
     } catch (error) {
       setError(((error as AxiosError).response?.data as APIERROR).message);
     }

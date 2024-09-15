@@ -11,16 +11,18 @@ import toast from 'react-hot-toast';
 
 interface Props {
   lists: ApiList[];
+  issueFilter: string,
   issues?: Issues;
   isDragDisabled: boolean;
 }
 
 const Board = (props: Props) => {
-  const { lists, issues, isDragDisabled } = props;
+  const { lists, issues, isDragDisabled,issueFilter } = props;
   const [reorderLists] = useReorderListsMutation();
   const [reorderIssues] = useReorderIssuesMutation();
   const [createList, { isLoading }] = useCreateListMutation();
   const projectId = Number(useParams().projectId);
+  
 
   const onDragEnd = ({ type, source: s, destination: d }: DropResult) => {
     if (!lists! || !issues || !d || (s.droppableId === d.droppableId && s.index === d.index))
@@ -59,6 +61,7 @@ const Board = (props: Props) => {
               key={props.id}
               idx={i}
               issues={issues?.[props.id]}
+              issueFilter = {issueFilter}
               isDragDisabled={isDragDisabled}
               {...props}
             />

@@ -49,7 +49,7 @@ function App() {
                 </S>
               }
             />
-            <R path='/' element={<Navigate to='/project' />} />
+            <R path='/' element={<Navigate to='/login' />} />
           </Routes>
         </BR>
       </Provider>

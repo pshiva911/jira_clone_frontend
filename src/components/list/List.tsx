@@ -10,18 +10,20 @@ const ConfirmModel = lazy(() => import('../util/ConfirmModel'));
 
 interface Props extends LIST {
   idx: number;
+  issueFilter: string,
   issues?: ApiIssue[];
   isDragDisabled: boolean;
 }
 
 const List = (props: Props) => {
-  const { idx, name: NAME, id, projectId, issues, isDragDisabled } = props;
+  const { idx, name: NAME, id, projectId, issues,issueFilter,isDragDisabled } = props;
   const [deleteList] = useDeleteListMutation();
   const [name, setName] = useState(NAME);
   const [isEditing, setIsEditing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [updateList] = useUpdateListMutation();
 
+  console.log(issues)
   const handleUpdateList = async () => {
     // when the user saves
     if (name && name !== NAME) {
@@ -80,7 +82,7 @@ const List = (props: Props) => {
           </div>
           <DroppableWrapper className='min-h-[3rem]' type='issue' droppableId={'list-' + id}>
             {issues?.map((data, i) => (
-              <Issue
+              data.summary.toLowerCase().includes(issueFilter.toLowerCase()) && <Issue
                 isDragDisabled={isDragDisabled}
                 key={data.id}
                 listIdx={idx}

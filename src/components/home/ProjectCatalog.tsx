@@ -9,6 +9,7 @@ import CreateProjectModel from './CreateProjectModel';
 import ProjectRow from './ProjectRow';
 
 const ProjectCatalog = () => {
+  
   const { authUser } = selectAuthUser();
   const {
     data: projects,
@@ -16,6 +17,7 @@ const ProjectCatalog = () => {
     isLoading,
   } = useProjectsQuery(authUser?.id as number, { skip: !authUser });
   const [isOpen, setIsOpen] = useState(false);
+  const [projectFilter,setProjectFilter] = useState("")
 
   if (error && (error as APIERROR).status === 401) return <Navigate to='/login' />;
 
@@ -47,6 +49,8 @@ const ProjectCatalog = () => {
             <input
               placeholder='Search projects'
               className='w-44 rounded-sm border-2 bg-transparent py-[5px] pl-9 pr-2 text-sm outline-none focus:border-chakra-blue'
+              value={projectFilter}
+              onChange={(e) => {setProjectFilter(e.target.value)}}
             />
             <Icon
               width={20}
@@ -66,7 +70,7 @@ const ProjectCatalog = () => {
             projects.length !== 0 ? (
               <div className='mt-1 border-t-2 border-c-3'>
                 {projects.map((data, i) => (
-                  <ProjectRow key={data.id} idx={i} authUserId={authUser.id} {...data} />
+                  data.name.toLowerCase().includes(projectFilter.toLowerCase()) && <ProjectRow key={data.id} idx={i} authUserId={authUser.id} {...data} />
                 ))}
               </div>
             ) : (

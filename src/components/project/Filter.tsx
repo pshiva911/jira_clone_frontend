@@ -16,6 +16,8 @@ interface Props {
   setIsDragDisabled: Dispatch<SetStateAction<boolean>>;
   projectId: number;
   isEmpty: boolean;
+  issueFilter:string;
+  setIssueFilter : Function
 }
 
 function Filter(props: Props) {
@@ -28,6 +30,7 @@ function Filter(props: Props) {
   const dispatch = useAppDispatch();
   const [fold, setFold] = useState(true);
   const len = m?.length;
+  
 
   if (error && (error as APIERROR).status === 401) return <Navigate to='/login' />;
 
@@ -47,6 +50,8 @@ function Filter(props: Props) {
         <input
           placeholder='Search issues'
           className='w-44 rounded-sm border-[1.5px] bg-transparent py-[5px] pl-9 pr-2 text-sm outline-none focus:border-chakra-blue'
+          value={props.issueFilter}
+          onChange = {(e) => {props.setIssueFilter(e.target.value)}}
         />
         <Icon
           width={20}
