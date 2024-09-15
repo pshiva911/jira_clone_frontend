@@ -1,124 +1,111 @@
-import { Button, ChakraProvider, Input, useToast } from '@chakra-ui/react';
 import { AxiosError } from 'axios';
+import { useState} from 'react';
 import {
+  FieldError,
   FieldErrorsImpl,
   FieldValues,
-  useForm,
   UseFormHandleSubmit,
   UseFormRegister,
 } from 'react-hook-form';
-import FormWithLabel from '../util/FormWithLabel';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { APIERROR } from '../../api/apiTypes';
+import InputWithValidation from '../util/InputWithValidation';
 
 interface Props {
   register: UseFormRegister<FieldValues>;
   errors: FieldErrorsImpl<{
     [x: string]: any;
   }>;
-  onSubmit: (body: {}) => Promise<any>;
+  onSubmit: (body: FieldValues) => Promise<any>;
   handleSubmit: UseFormHandleSubmit<FieldValues>;
   type: 'LOGIN' | 'SIGNUP';
+  loading: boolean;
 }
 
-type APIERROR = { message: string };
-
-const Form = (props: Props) => {
-  const { register, onSubmit, handleSubmit, errors, type } = props;
-  // const { handleSubmit } = useForm();
-  const toast = useToast();
+function Form(props: Props) {
+  const { register, onSubmit, handleSubmit, errors, loading, type } = props;
+  const [error, setError] = useState('');
+  const navigate = useNavigate()
 
   const submit = handleSubmit(async (form) => {
     try {
-      onSubmit(form);
+      await onSubmit(form);
+      toast(type === 'LOGIN' ? 'You have logged in!' : 'Your account is created!');
+      // window.location.replace('https://jira-replica.vercel.app/project'); //with refresh
+      // window.location.replace('http://localhost:5173/project');
+      navigate('/project')
     } catch (error) {
-      const err = (error as AxiosError).response?.data as APIERROR;
-      toast({
-        title: 'Resiger error',
-        description: err.message,
-        status: 'error',
-        isClosable: true,
-        position: 'top-right',
-        duration: null,
-      });
+      setError(((error as AxiosError).response?.data as APIERROR).message);
     }
   });
 
   return (
     <form onSubmit={submit}>
-      <ChakraProvider>
-        <FormWithLabel label='Email' labelClass='text-[14px]'>
-          <>
-            <Input
-              {...register('email', {
-                required: { value: true, message: 'must not be empty' },
-                pattern: {
-                  value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g,
-                  message: 'please provide a valid email',
-                },
-              })}
-              size='sm'
-              borderColor='gray'
-              border='1.5px solid'
-            />
-            {errors.email && <ErrorMsg msg={errors.email.message as string} />}
-          </>
-        </FormWithLabel>
+      <div className='flex flex-col gap-y-4'>
+        <InputWithValidation
+          label='Email'
+          register={register('email', {
+            required: { value: true, message: 'email must not be empty' },
+            pattern: {
+              value: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/g,
+              message: 'please provide a valid email',
+            },
+          })}
+          error={errors.email as FieldError}
+          inputClass='border-gray-500'
+          autoFocus
+        />
         {type === 'SIGNUP' && (
-          <FormWithLabel label='Username' labelClass='text-[14px]'>
-            <>
-              <Input
-                {...register('username', {
-                  required: { value: true, message: 'must not be empty' },
-                  minLength: { value: 2, message: 'must be at least two characters long' },
-                  pattern: { value: /^[A_Za-z0-9_]+$/, message: 'username can be a-z,A-Z,0-9,_' },
-                })}
-                size='sm'
-                border='1.5px solid'
-                borderColor='gray'
-              />
-              {errors.username && <ErrorMsg msg={errors.username.message as string} />}
-            </>
-          </FormWithLabel>
+          <InputWithValidation
+            label='Username'
+            register={register('username', {
+              required: { value: true, message: 'username must not be empty' },
+              minLength: {
+                value: 2,
+                message: 'must be at least two characters long',
+              },
+              pattern: {
+                value: /^[A-Za-z0-9_]+$/g,
+                message: 'username can be a-z,A-Z,0-9,_',
+              },
+            })}
+            error={errors.username as FieldError}
+            inputClass='border-gray-500'
+          />
         )}
-        <FormWithLabel label='Password' labelClass='text-[14px]'>
-          <>
-            <Input
-              {...register('pwd', {
-                required: { value: true, message: 'must not be empty' },
-                minLength: { value: 4, message: 'must be at least 4 characters long' },
-                maxLength: { value: 14, message: 'must be under 15 characters' },
-              })}
-              size='sm'
-              border='1.5px solid'
-              borderColor='gray'
-            />
-            {errors.pwd && <ErrorMsg msg={errors.pwd.message as string} />}
-          </>
-        </FormWithLabel>
-        <hr className='border-t-[.5px] border-gray-400' />
-        <span className='text-[12px] text-gray-600 block mt-6'>
-          By clicking below, you agree to the our
-          <span className='text-blue-800'> Privacy Policy.</span>
-        </span>
-        <Button
-          type='submit'
-          size='sm'
-          width='full'
-          colorScheme='blue'
-          color='white'
-          bgColor='#321898'
-          borderRadius={3}
-          mt={6}
-          py={5}
-        >
-          {type === 'SIGNUP' ? 'Join now' : 'Log In'}
-        </Button>
-      </ChakraProvider>
+        <InputWithValidation
+          label='Password'
+          register={register('pwd', {
+            required: { value: true, message: 'password must not be empty' },
+            minLength: {
+              value: 4,
+              message: 'must be at least 4 characters long',
+            },
+            maxLength: { value: 14, message: 'must be under 15 characters' },
+          })}
+          error={errors.pwd as FieldError}
+          inputClass='border-gray-500'
+          type='password'
+        />
+      </div>
+      {error && <span className='mt-3 block text-red-400'>{error}</span>}
+      <hr className='mt-3 border-t-[.5px] border-gray-400' />
+      <span className='mt-6 block text-[12px] text-gray-600'>
+        By clicking below, you agree to the our
+        <span className='text-blue-800'> Privacy Policy.</span>
+      </span>
+      <button type='submit' className='btn mt-4 w-full bg-[#321898] py-2'>
+        {type === 'SIGNUP'
+          ? loading
+            ? 'registering ...'
+            : 'Join now'
+          : loading
+          ? 'logging in ...'
+          : 'Log In'}
+      </button>
     </form>
   );
-};
+}
 
 export default Form;
-
-const ErrorMsg = ({ msg }: { msg: string }) => (
-  <span className='text-[13px] text-red-500'>{msg}</span>
-);

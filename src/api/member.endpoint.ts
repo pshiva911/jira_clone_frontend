@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { AddRemoveMember, Member } from './apiTypes';
+import type { AddMember, Member, RemoveMember } from './apiTypes';
 
 export const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,18 +10,20 @@ export const extendedApi = api.injectEndpoints({
       }),
       providesTags: ['Members'],
     }),
-    removeMember: builder.mutation<void, AddRemoveMember>({
-      query: ({ userId, projectId }) => ({
-        url: `member/remove?userId=${userId}&projectId=${projectId}`,
+    removeMember: builder.mutation<void, RemoveMember>({
+      query: (body) => ({
+        url: `member/remove`,
         method: 'DELETE',
+        body,
         credentials: 'include',
       }),
       invalidatesTags: ['Members'],
     }),
-    addMember: builder.mutation<void, AddRemoveMember>({
-      query: ({ userId, projectId }) => ({
-        url: `member/add?userId=${userId}&projectId=${projectId}`,
+    addMember: builder.mutation<void, AddMember>({
+      query: (body) => ({
+        url: `member/add`,
         method: 'PUT',
+        body,
         credentials: 'include',
       }),
       invalidatesTags: ['Members'],

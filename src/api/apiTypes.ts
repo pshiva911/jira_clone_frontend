@@ -1,9 +1,34 @@
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  profileUrl: string;
+  lastLoggedIn: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type updateAuthUser = Partial<Pick<AuthUser, 'username' | 'email' | 'profileUrl'>>;
+
 export interface List {
   id: number;
   name: string;
   order: number;
-  // createdAt: string;
-  // updatedAt: string;
+  projectId: number;
+}
+
+export interface CreateList {
+  projectId: number;
+}
+
+export interface UpdateList {
+  listId: number;
+  body: Partial<List>;
+}
+
+export interface DeleteList {
+  listId: number;
+  projectId: number;
 }
 
 export interface Issue {
@@ -16,6 +41,7 @@ export interface Issue {
   listId: number;
   reporterId: number;
   assignees: Assignee[];
+  comments: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -24,7 +50,7 @@ export interface Assignee {
   id: number;
   userId: number;
   issueId: number;
-  // createdAt: string
+  projectId: number;
 }
 
 export interface Member {
@@ -35,7 +61,6 @@ export interface Member {
   isAdmin: boolean;
   projectId: number;
   userId: number;
-  // createdAt: string
 }
 
 export interface Project {
@@ -46,7 +71,15 @@ export interface Project {
   userId: number;
 }
 
-export interface SearchedUser {
+export type CreateProject = Omit<Project, 'id'>;
+
+export interface LeaveProject {
+  projectId: number;
+  userId: number;
+  memberId: number;
+}
+
+export interface PublicUser {
   id: number;
   username: string;
   email: string;
@@ -81,9 +114,13 @@ export interface reorderIssues {
   projectId: number;
 }
 
-export interface AddRemoveMember {
-  userId: number;
+export interface AddMember {
   projectId: number;
+  userId: number;
+}
+
+export interface RemoveMember extends AddMember {
+  memberId: number;
 }
 
 export interface dndOrderData {
@@ -124,6 +161,11 @@ export interface UpdateIssue {
   };
 }
 
+export interface DeleteIssue {
+  issueId: number;
+  projectId: number;
+}
+
 export interface IssueQuery {
   projectId: number;
   userId?: number;
@@ -132,4 +174,30 @@ export interface IssueQuery {
 export interface APIERROR {
   message: string;
   status: number;
+}
+
+export interface Comment {
+  id: number;
+  username: string;
+  profileUrl?: string;
+  userId: number;
+  descr: string;
+  createdAt: string;
+}
+
+export interface getComments {
+  issueId: number;
+  projectId: number;
+}
+
+export interface CreateComment {
+  issueId: number;
+  userId: number;
+  descr: string;
+  projectId: number;
+}
+
+export interface DeleteComment {
+  id: number;
+  projectId: number;
 }

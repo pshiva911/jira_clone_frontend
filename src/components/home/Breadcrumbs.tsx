@@ -1,25 +1,34 @@
-import { ChakraProvider, Breadcrumb, BreadcrumbItem, BreadcrumbLink, Heading } from '@chakra-ui/react';
+import { Link, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import { useProjectQuery } from '../../api/endpoints/project.endpoint';
 
 const Breadcrumbs = () => {
+  const location = useLocation();
+  const fragments = location.pathname.slice(1).split('/');
+  const { data: project } = useProjectQuery(Number(fragments[1]) ?? -1);
+
   return (
-    <ChakraProvider>
-      <div className='mt-8 px-10 min-w-max'>
-        <Breadcrumb className='text-light-c-3'  spacing='8px' separator={<Icon className='inline text-xl' icon='ei:chevron-right' />}>
-          <BreadcrumbItem>
-            <BreadcrumbLink href='/project'>project</BreadcrumbLink>
-          </BreadcrumbItem>
-
-          <BreadcrumbItem>
-            <BreadcrumbLink href='/project/pid'>Bleach: TYBW</BreadcrumbLink>
-          </BreadcrumbItem>
-
-          <BreadcrumbItem isCurrentPage>
-            <BreadcrumbLink href='/project/pid/smoeth'>Kanban board</BreadcrumbLink>
-          </BreadcrumbItem>
-        </Breadcrumb>
-      </div>
-    </ChakraProvider>
+    <div className='mt-8 mb-4 min-w-max px-8 text-c-text sm:px-10'>
+      <Link to='/project' className='hover:underline'>
+        project
+      </Link>
+      {fragments[1] && (
+        <>
+          <Icon className='mx-2 inline text-xl' icon='ei:chevron-right' />
+          <Link to={'/project/' + fragments[1]} className='hover:underline'>
+            {project?.name ?? 'undefined'}
+          </Link>
+        </>
+      )}
+      {fragments[2] && (
+        <>
+          <Icon className='mx-2 inline text-xl' icon='ei:chevron-right' />
+          <Link to={`/project/${fragments[1]}/board`} className='hover:underline'>
+            Jira Board
+          </Link>
+        </>
+      )}
+    </div>
   );
 };
 

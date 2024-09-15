@@ -1,6 +1,6 @@
-import { Avatar, AvatarGroup, ChakraProvider } from '@chakra-ui/react';
-import { memo } from 'react';
 import { Assignee, Member } from '../../api/apiTypes';
+import Avatar from '../util/Avatar';
+import { memo } from 'react';
 
 interface Props {
   assignees: Assignee[];
@@ -8,21 +8,33 @@ interface Props {
 }
 
 const AssignedMembers = (props: Props) => {
-  const { members, assignees } = props;
+  const { members, assignees: ass } = props;
   const membersObj = members.reduce(
     (p, { id, userId, ...data }) => ({ ...p, [userId]: data }),
     {}
   ) as Record<number, Member>;
+  const len = ass.length;
 
   return (
-    <ChakraProvider>
-      <AvatarGroup size='sm'>
-        {assignees.map(({ id, userId }) => {
-          const { username, profileUrl } = membersObj[userId];
-          return <Avatar key={id} name={username} src={profileUrl} />;
-        })}
-      </AvatarGroup>
-    </ChakraProvider>
+    <div className='ml-7 flex'>
+      {(len > 2 ? ass.slice(0, 2) : ass).map(({ userId }, i) => {
+        const u = membersObj[userId];
+        return u ? (
+          <Avatar
+            key={userId}
+            src={u.profileUrl}
+            name={u.username}
+            style={{ zIndex: len - i }}
+            className='pointer-events-none -ml-2 h-7 w-7 border-2'
+          />
+        ) : null;
+      })}
+      {len > 2 && (
+        <div className='-ml-2 grid h-7 w-7 items-center rounded-full bg-c-2 pl-[10px] text-[12px]'>
+          {len - 2}+
+        </div>
+      )}
+    </div>
   );
 };
 

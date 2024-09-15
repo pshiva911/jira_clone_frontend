@@ -2,27 +2,27 @@ import { DragDropContext, DraggableLocation } from '@hello-pangea/dnd';
 import type { DropResult } from '@hello-pangea/dnd';
 import DroppableWrapper from '../dnd/DroppableWrapper';
 import List from '../list/List';
-import { useReorderIssuesMutation } from '../../api/issues.endpoint';
-import { useReorderListsMutation } from '../../api/lists.endpoint';
+import { useReorderIssuesMutation } from '../../api/endpoints/issues.endpoint';
+import { useCreateListMutation, useReorderListsMutation } from '../../api/endpoints/lists.endpoint';
 import type { Issues, List as ApiList } from '../../api/apiTypes';
 import { useParams } from 'react-router-dom';
 import { Icon } from '@iconify/react';
+import toast from 'react-hot-toast';
 
 interface Props {
-  lists?: ApiList[];
+  lists: ApiList[];
+  issueFilter: string,
   issues?: Issues;
-  // listsAreReady: boolean;
-  // issuesAreReady: boolean;
+  isDragDisabled: boolean;
 }
 
 const Board = (props: Props) => {
-  const { lists, issues } = props;
+  const { lists, issues, isDragDisabled,issueFilter } = props;
   const [reorderLists] = useReorderListsMutation();
   const [reorderIssues] = useReorderIssuesMutation();
-  const { projectId } = useParams();
-
-  if (!lists || !issues) return null;
-  console.log(lists, issues);
+  const [createList, { isLoading }] = useCreateListMutation();
+  const projectId = Number(useParams().projectId);
+  
 
   const onDragEnd = ({ type, source: s, destination: d }: DropResult) => {
     if (!lists! || !issues || !d || (s.droppableId === d.droppableId && s.index === d.index))
@@ -32,18 +32,23 @@ const Board = (props: Props) => {
           id: lists[s.index].id,
           order: s.index + 1, // change index to actual order
           newOrder: d.index + 1, // change index to actual order
-          projectId: 1,
+          projectId,
         })
       : reorderIssues({
           id: issues[parseId(s)][s.index].id,
           s: { sId: parseId(s), order: s.index + 1 }, // change index to actual order
           d: { dId: parseId(d), newOrder: d.index + 1 }, // change index to actual order
-          projectId: Number(projectId),
+          projectId,
         });
   };
 
+  const handleCreateList = async () => {
+    await createList({ projectId });
+    toast('Created a list!');
+  };
+
   return (
-    <div className='grow px-10 min-w-max'>
+    <div className='mb-5 flex min-w-max grow items-start'>
       <DragDropContext onDragEnd={onDragEnd}>
         <DroppableWrapper
           type='list'
@@ -51,13 +56,29 @@ const Board = (props: Props) => {
           droppableId='board-central'
           direction='horizontal'
         >
-          {lists.map((props, n) => (
-            <List key={props.id} index={n} issues={issues[props.id]} {...props} />
+          {lists.map((props, i) => (
+            <List
+              key={props.id}
+              idx={i}
+              issues={issues?.[props.id]}
+              issueFilter = {issueFilter}
+              isDragDisabled={isDragDisabled}
+              {...props}
+            />
           ))}
-          <button className='bg-light-c-2 hover:bg-[#eef1f7] active:bg-blue-100 py-3 px-11 rounded-md flex items-center gap-5'>
-            Create a list <Icon icon='ant-design:plus-outlined' />
-          </button>
         </DroppableWrapper>
+        <button
+          onClick={handleCreateList}
+          className='flex items-center gap-5 rounded-md bg-c-2 py-3 px-14 text-c-5 hover:bg-c-6 active:bg-blue-100'
+        >
+          {isLoading ? (
+            'creating ...'
+          ) : (
+            <>
+              Create a list <Icon icon='ant-design:plus-outlined' />
+            </>
+          )}
+        </button>
       </DragDropContext>
     </div>
   );

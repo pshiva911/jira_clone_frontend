@@ -1,21 +1,25 @@
 import { Outlet, useOutlet } from 'react-router-dom';
 import Breadcrumbs from './Breadcrumbs';
-// import Dashboard from '../dashboard/Dashboard';
 import Menubar from './Menubar';
 import ProjectCatalog from './ProjectCatalog';
 import Sidebar from './Sidebar';
+import type { Theme } from '../../utils';
 
-/* <Dashboard /> */
-const Home = () => {
+interface Props {
+  theme: Theme;
+  toggleTheme: () => void;
+}
+
+const Home = (props: Props) => {
   const outlet = useOutlet();
 
   return (
     <>
-      <Sidebar />
+      <Sidebar {...props} />
+      <Menubar />
       {outlet ? (
         <>
-          <Menubar />
-          <main className='z-10 bg-center bg-white overflow-auto grow'>
+          <main className='z-10 h-screen grow overflow-auto bg-c-1 bg-center'>
             <Breadcrumbs />
             <Outlet />
           </main>

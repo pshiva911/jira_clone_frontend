@@ -1,9 +1,10 @@
-import { Avatar, Button, Text } from '@chakra-ui/react';
 import { Icon } from '@iconify/react';
-import { SearchedUser } from '../../api/apiTypes';
-import { useAddMemberMutation } from '../../api/member.endpoint';
+import toast from 'react-hot-toast';
+import { PublicUser } from '../../api/apiTypes';
+import { useAddMemberMutation } from '../../api/endpoints/member.endpoint';
+import Avatar from '../util/Avatar';
 
-interface Props extends SearchedUser {
+interface Props extends PublicUser {
   added: boolean;
   projectId: number;
   setInput: React.Dispatch<React.SetStateAction<string>>;
@@ -13,30 +14,25 @@ const UserMember = (props: Props) => {
   const { id, username, email, profileUrl, added, projectId, setInput } = props;
   const [addMember] = useAddMemberMutation();
 
-  const handleAddMember = () => {
-    addMember({ userId: id, projectId });
+  const handleAddMember = async () => {
+    if (added) return;
+    await addMember({ userId: id, projectId });
+    toast(username + ' has joined to the project!');
     setInput('');
   };
 
   return (
-    <Button
+    <div
       onClick={handleAddMember}
-      pointerEvents={added ? 'none' : 'auto'}
-      justifyContent='start'
-      alignItems='center'
-      colorScheme='gray'
-      rounded='sm'
-      w='full'
-      py={6}
-      mb={1}
+      className={`mb-1 flex items-center rounded-sm bg-c-2 px-3 py-2 text-c-text hover:bg-c-6  ${
+        added ? 'pointer-events-none' : 'cursor-pointer'
+      }`}
     >
-      <Avatar size='sm' src={profileUrl} />
-      <Text mx={3}>{username}</Text>
-      <Text overflow='hidden' textOverflow='ellipsis' fontWeight={400} fontSize={14} ml='auto'>
-        {email}
-      </Text>
+      <Avatar src={profileUrl} name={username} />
+      <span className='mx-3'>{username}</span>
+      <span className='ml-auto overflow-hidden truncate text-sm font-medium'>{email}</span>
       {added && <Icon className='ml-3' icon='teenyicons:tick-circle-outline' />}
-    </Button>
+    </div>
   );
 };
 

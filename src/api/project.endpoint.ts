@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { EditProject, Project } from './apiTypes';
+import type { CreateProject, EditProject, Project } from './apiTypes';
 
 export const extendedApi = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -14,11 +14,15 @@ export const extendedApi = api.injectEndpoints({
       }),
       providesTags: ['Project'],
     }),
-    editProject: builder.mutation<void, EditProject>({
-      query: (body) => ({ url: 'project/1', method: 'PUT', body, credentials: 'include' }),
+    createProject: builder.mutation<Project, CreateProject>({
+      query: (body) => ({ url: 'project/create', method: 'POST', body, credentials: 'include' }),
       invalidatesTags: ['Project'],
-      async onQueryStarted({ id, ...newData }, { dispatch, queryFulfilled }) {
-        const result = dispatch(
+    }),
+    updateProject: builder.mutation<void, EditProject>({
+      query: (body) => ({ url: `project/${body.id}`, method: 'PUT', body, credentials: 'include' }),
+      invalidatesTags: ['Project'],
+      async onQueryStarted({ id, ...newData }, { dispatch }) {
+        dispatch(
           extendedApi.util.updateQueryData('project', id, (oldData) => ({ ...oldData, ...newData }))
         );
       },
@@ -27,7 +31,12 @@ export const extendedApi = api.injectEndpoints({
   overrideExisting: false,
 });
 
-export const { useProjectsQuery, useProjectQuery, useEditProjectMutation } = extendedApi;
+export const {
+  useProjectsQuery,
+  useProjectQuery,
+  useCreateProjectMutation,
+  useUpdateProjectMutation,
+} = extendedApi;
 
 // selectors
 export const selectCurrentProject = (projectId: number) =>
