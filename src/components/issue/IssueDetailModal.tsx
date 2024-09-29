@@ -36,6 +36,7 @@ const IssueDetailModal = (props: IssueModalProps) => {
     descr,
     createdAt,
     updatedAt,
+    attachment // Add attachment field here
   } = issues[issue.idx];
   const memberObj = members.reduce((t, n) => ({ ...t, [n.value]: n }), {}) as Category[];
   const [updateIssue] = useUpdateIssueMutation();
@@ -90,6 +91,33 @@ const IssueDetailModal = (props: IssueModalProps) => {
               apiFunc={dispatchMiddleware}
             />
             <hr className='mx-3' />
+
+            {/* Styled Attachment Section */}
+            {attachment && (
+              <div className='my-4 p-4 border border-gray-300 bg-[#f4f5f7] rounded-lg'>
+                <WithLabel label='Attachment'>
+                  <div className='attachment-preview'>
+                    {/\.(jpg|jpeg|png|gif)$/.test(attachment) ? (
+                      <img
+                        src={attachment} // Assuming attachment is a URL
+                        alt='Issue Attachment'
+                        className='max-w-full h-auto rounded-md shadow-sm object-contain'
+                      />
+                    ) : (
+                      <a
+                        href={attachment}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='inline-block mt-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-500 transition'
+                      >
+                        View Attachment
+                      </a>
+                    )}
+                  </div>
+                </WithLabel>
+              </div>
+            )}
+
             <CommentSection issueId={id} projectId={projectId} />
           </div>
           <div className='mt-3 shrink-0 sm:w-[15rem]'>
@@ -170,6 +198,8 @@ const IssueDetailModal = (props: IssueModalProps) => {
 
 export default IssueDetailModal;
 
+
+
 const constructApiAssignee = (OLD: number[], NEW: number[]): DispatchMiddleware | undefined => {
   const oldLen = OLD.length,
     newLen = NEW.length;
@@ -183,7 +213,7 @@ const constructApiAssignee = (OLD: number[], NEW: number[]): DispatchMiddleware 
 
 export type DispatchMiddleware = {
   type: UpdateIssueType;
-  value: number | number[] | string;
+  value: number | number[] | string | any ;
 };
 const cipher = {
   descr: 'description',

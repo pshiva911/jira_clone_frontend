@@ -44,6 +44,7 @@ export interface Issue {
   comments: number;
   createdAt?: string;
   updatedAt?: string;
+  attachment?:string
 }
 
 export interface Assignee {
@@ -128,6 +129,21 @@ export interface dndOrderData {
   d: { dId: number; index: number };
 }
 
+export interface CreateIssueFormData {
+  // id?: number;
+  // type: number;
+  // reporterId: number | null;
+  // assignees: number[];
+  // listId: number | null;
+  // priority: number;
+  // summary: string;
+  // descr: string;
+  // createdAt?: string;
+  // updatedAt?: string;
+  // projectId: number;
+  formData : FormData
+}
+
 export interface CreateIssue {
   id?: number;
   type: number;
@@ -142,6 +158,8 @@ export interface CreateIssue {
   projectId: number;
 }
 
+
+
 export type UpdateIssueType =
   | 'type'
   | 'summary'
@@ -150,13 +168,14 @@ export type UpdateIssueType =
   | 'priority'
   | 'listId'
   | 'addAssignee'
-  | 'removeAssignee';
+  | 'removeAssignee'
+  | 'attachment';
 
 export interface UpdateIssue {
   id: number;
   body: {
     type: UpdateIssueType;
-    value: string | number | number[];
+    value: string | number | number[] | File | null;
     projectId: number;
   };
 }

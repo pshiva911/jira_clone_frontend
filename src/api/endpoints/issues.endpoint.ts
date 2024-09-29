@@ -1,3 +1,4 @@
+import { json } from 'react-router-dom';
 import { api } from '../api';
 import type {
   CreateIssue,
@@ -7,6 +8,7 @@ import type {
   Issues,
   reorderIssues,
   UpdateIssue,
+  CreateIssueFormData
 } from '../apiTypes';
 
 export const extendedApi = api.injectEndpoints({
@@ -17,8 +19,8 @@ export const extendedApi = api.injectEndpoints({
       }),
       providesTags: ['Issues'],
     }),
-    createIssue: builder.mutation<void, CreateIssue>({
-      query: (body) => ({ url: 'issue/create', method: 'POST', body }),
+    createIssue: builder.mutation<void, any>({
+      query: (urlEncoded) => ({ url: 'issue/create', method: 'POST',body : urlEncoded}),
       invalidatesTags: ['Issues'],
     }),
     updateIssue: builder.mutation<void, UpdateIssue>({

@@ -23,7 +23,6 @@ const List = (props: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [updateList] = useUpdateListMutation();
 
-  console.log(issues)
   const handleUpdateList = async () => {
     // when the user saves
     if (name && name !== NAME) {
