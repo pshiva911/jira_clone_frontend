@@ -34,7 +34,7 @@ function Sidebar(props: Props) {
   const handleLogOut = async () => {
     await logOut();
     toast('Logged out!');
-    navigate('/login',{ replace: true });
+    window.location.replace('/login');
   };
   return (
     <div className='flex min-h-screen shrink-0'>
