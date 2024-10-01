@@ -16,9 +16,9 @@ const UserMember = (props: Props) => {
 
   const handleAddMember = async () => {
     if (added) return;
+    setInput('');
     await addMember({ userId: id, projectId });
     toast(username + ' has joined to the project!');
-    setInput('');
   };
 
   return (

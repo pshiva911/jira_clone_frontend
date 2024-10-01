@@ -1,5 +1,5 @@
 interface Props {
-  text: string;
+  text: string ;
   icon?: string;
   size: string;
   variant?: 'ROUND' | 'SQUARE';

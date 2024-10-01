@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const axiosDf = axios.create({
-	baseURL: "http://ec2-65-2-63-115.ap-south-1.compute.amazonaws.com:8080/",
+	baseURL: "https://3676-65-2-63-115.ngrok-free.app/",
 	// baseURL: "http://localhost:4000/",
 	withCredentials: true,
 })

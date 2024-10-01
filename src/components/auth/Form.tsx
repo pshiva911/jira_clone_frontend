@@ -79,8 +79,16 @@ function Form(props: Props) {
           register={register('pwd', {
             required: { value: true, message: 'password must not be empty' },
             minLength: {
-              value: 4,
-              message: 'must be at least 4 characters long',
+              value: 6,
+              message: 'must be at least 6 characters long',
+            },
+            pattern: {
+              value: type === 'SIGNUP' 
+                ? /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/ 
+                : /.+/,
+              message: type === 'SIGNUP' 
+                ? 'Password must have atleast 1 lowercase, 1 uppercase, 1 special character, and 1 number' 
+                : "",
             },
             maxLength: { value: 14, message: 'must be under 15 characters' },
           })}
