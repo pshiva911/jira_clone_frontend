@@ -75,7 +75,7 @@ const CreateIssueModel = (props: IssueModalProps) => {
   return (
     <Model onSubmit={handleCreateIssue} {...{ onClose, isLoading }} className='max-w-[35rem]'>
       <>
-        <span className='text-[22px] font-[600] text-c-1'>Create Issue</span>
+        <span className='text-[22px] font-[600] text-c-1'>Create</span>
         <WithLabel label='Issue type'>
           <DropDown
             list={types}

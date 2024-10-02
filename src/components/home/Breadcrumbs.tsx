@@ -24,7 +24,7 @@ const Breadcrumbs = () => {
         <>
           <Icon className='mx-2 inline text-xl' icon='ei:chevron-right' />
           <Link to={`/project/${fragments[1]}/board`} className='hover:underline'>
-            Jira Board
+          JiraMini Board
           </Link>
         </>
       )}
