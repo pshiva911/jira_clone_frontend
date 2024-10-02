@@ -97,7 +97,7 @@ function Filter(props: Props) {
         </>
       )}
       <button onClick={handleClick} className='btn peer relative mx-5 shrink-0'>
-        Create an issue
+        Create
       </button>
       {pj && pj.repo && (
         <button
