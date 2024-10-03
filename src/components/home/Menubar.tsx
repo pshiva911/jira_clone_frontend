@@ -31,7 +31,7 @@ const Menubar = () => {
             </div>
           </div>
           <div className='my-5'>
-            <BtnWithIcon to={projectId + '/board'} icon='bi:Jira' text='Kanban Board' />
+            <BtnWithIcon to={projectId + '/board'} icon='bi:Jira-solid' text='Jira Board' />
             <BtnWithIcon to={projectId + ''} icon='clarity:settings-solid' text='Project Setting' />
           </div>
           <hr className='border-t-[.5px] border-gray-400' />
