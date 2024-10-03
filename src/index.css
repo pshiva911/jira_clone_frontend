@@ -15,9 +15,9 @@
   --c-3: #ddd;
   --c-6: #edf2f7;
   --c-7: #dbeafe;
-  --c-text: #172b4d;
-  --primary: #3920a9;
-  --secondary: #439aff;
+  --c-text: #073fa0;
+  --primary: #264653;
+  --secondary: #52a0f9;
   --c-5: #000;
 }
 
@@ -30,8 +30,8 @@
   --c-4: #ebecf0;
   --c-6: #555;
   --c-7: #444;
-  --primary: #3920a9;
-  --secondary: #439aff;
+  --primary: #264653;
+  --secondary: #52a0f9;
 }
 
 @layer components {
